@@ -4,7 +4,7 @@ namespace app\commands;
 
 use app\components\UtilComponent;
 use Symfony\Component\DomCrawler\Crawler;
-use yii\console\controller;
+use yii\web\Controller;
 use app\models\Category2;
 use app\models\Card;
 
