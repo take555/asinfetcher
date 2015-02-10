@@ -6,7 +6,7 @@ use Yii;
 use app\components\UtilComponent;
 use Symfony\Component\DomCrawler\Crawler;
 use yii\filters\VerbFilter;
-use yii\web\controller;
+use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use app\models\Category2;
 use app\models\Card;
