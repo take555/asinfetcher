@@ -29,6 +29,11 @@ class AsinController extends Controller
 
         $params = Yii::$app->request->post();
 
+        if(isset($params[Card::kParamsKeyTest]) && $params[Card::kParamsKeyTest] === Card::kParamsValueTestTrue){
+            \Yii::info("THIS IS TEST CALL\n", "infos");
+            $params[Card::kParamsKeyLimit] = 5;
+        }
+
         \Yii::info("POST PARAMS:".print_r($params,true)."\n", "infos");
 
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;

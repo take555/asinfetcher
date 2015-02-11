@@ -310,7 +310,7 @@ class AmazonScraperComponent extends ScraperComponent
 
 
 
-    public function assign($category2Id)
+    public function assign($category2Id, $test = false)
     {
 
         $fetcherCount = count($this->fetcherList);
@@ -339,6 +339,10 @@ class AmazonScraperComponent extends ScraperComponent
                 'id' => ($key + 1),
                 Card::kParamsKeyCat2Id => $category2Id,
             ];
+
+            if($test === true){
+                $params[Card::kParamsKeyTest] = Card::kParamsValueTestTrue;
+            }
 
             $params[Card::kParamsKeyLimit] = $baseProcessCount;
 

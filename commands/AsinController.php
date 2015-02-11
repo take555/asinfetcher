@@ -4,7 +4,7 @@ namespace app\commands;
 
 use app\components\UtilComponent;
 use Symfony\Component\DomCrawler\Crawler;
-use yii\web\Controller;
+use yii\console\Controller;
 use app\models\Category2;
 use app\models\Card;
 
@@ -63,10 +63,14 @@ class AsinController extends Controller
 
 
 
-    public function actionOrchestrate($category2Id = 271)
+    public function actionOrchestrate($category2Id = 271, $test = null)
     {
 
-        \Yii::$app->amazon_scraper->assign($category2Id);
+        if(is_null($test)){
+            $test = false;
+        }
+
+        \Yii::$app->amazon_scraper->assign($category2Id, $test);
         return 0;
 
     }

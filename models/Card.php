@@ -93,6 +93,8 @@ class Card extends \yii\db\ActiveRecord
     const kParamsKeyLimit         = 'limit';
     const kParamsKeyOffset        = 'offset';
     const kParamsKeySelect        = 'select';
+    const kParamsKeyTest          = 'test';
+    const kParamsValueTestTrue    = 'true';
 
 
     /**
