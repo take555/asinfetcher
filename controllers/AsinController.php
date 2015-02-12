@@ -58,7 +58,7 @@ class AsinController extends Controller
             \Yii::info($infoMessage, 'infos');
         }
 
-        \Yii::$app->amazon_scraper->execute($params);
+        return \Yii::$app->amazon_scraper->execute($params);
 
 
     }

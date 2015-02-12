@@ -445,6 +445,7 @@ class UtilComponent extends Component
             $errMessage = $title.$modelParams.$er.$ec.$el.$line;
 
             Yii::error($errMessage, 'dbErrors');
+            return fasle;
         }
 
 

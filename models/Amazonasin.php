@@ -22,6 +22,12 @@ use Yii;
  */
 class Amazonasin extends \yii\db\ActiveRecord
 {
+
+    const kAttrKeyId              = 'id';
+    const kAttrKeyCardId          = 'card_id';
+    const kAttrKeyAsin            = 'asin';
+    const kAttrKeyUpdatedAt       = 'updated_at';
+
     /**
      * @inheritdoc
      */

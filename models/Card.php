@@ -88,6 +88,7 @@ class Card extends \yii\db\ActiveRecord
     const kAttrKeyRarity          = 'rarity';
     const kAttrKeyRarityJa        = 'rarity_ja';
     const kAttrKeyRarityShort     = 'rarity_short';
+    const kAttrKeyUpdatedAt       = 'updated_at';
 
     const kParamsKeyCat2Id        = 'category2Id';
     const kParamsKeyLimit         = 'limit';

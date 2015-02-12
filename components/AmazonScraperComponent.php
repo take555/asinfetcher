@@ -35,6 +35,8 @@ class AmazonScraperComponent extends ScraperComponent
 
     public $expireSearchResultPage;
 
+    public $expireAsinResult;
+
     public $searchWordRuleSetList;
 
     public $category2;
@@ -163,9 +165,31 @@ class AmazonScraperComponent extends ScraperComponent
 
         $tmpSearchWordRuleSetList = null;
 
+        $restCount = $cardListCount;
         $count = 0;
 
+        $processed = 0;
+        $skipped = 0;
+
         foreach($cardList as $card){
+
+            if(!$this->isNeedFecthAsin($card[Card::kAttrKeyId])){
+                $skipped++;
+                $count++;
+                $restCount = $cardListCount - $count;
+                \Yii::info("###########################################################\n", 'processStatus');
+                \Yii::info("PROCESSED:        {$processed}\n", 'processStatus');
+                \Yii::info("SKIPPED:          {$skipped}\n", 'processStatus');
+                \Yii::info("COUNT:            {$count}\n", 'processStatus');
+                \Yii::info("REST:             {$restCount}\n", 'processStatus');
+                \Yii::info("CURRENT CARD_ID:  {$card['id']}\n", 'processStatus');
+                \Yii::info("RANGE:            {$firstCardId} ~ {$lastCardId}\n", 'processStatus');
+                \Yii::info("TOTAL:            {$cardListCount}\n", 'processStatus');
+                \Yii::info("###########################################################\n", 'processStatus');
+
+                continue;
+            }
+
             $tmpSearchWordRuleSetList = null;
             $tmpRarityJa = $this->getRarityKanaFromRarityShort($card[Card::kAttrKeyRarityShort]);
             //英略レアリティ記号から日本語レアリティ表記を取得できない場合、検索ルールリストから日本語レアリティ表記を含むルールを削除する
@@ -189,12 +213,15 @@ class AmazonScraperComponent extends ScraperComponent
 
             Amazonasin::storeAsinInfoList($asinInfoList, $card);
 
+            $processed++;
             $count++;
 
             $restCount = $cardListCount - $count;
 
             \Yii::info("###########################################################\n", 'processStatus');
-            \Yii::info("PROCESSED:        {$count}\n", 'processStatus');
+            \Yii::info("PROCESSED:        {$processed}\n", 'processStatus');
+            \Yii::info("SKIPPED:          {$skipped}\n", 'processStatus');
+            \Yii::info("COUNT:            {$count}\n", 'processStatus');
             \Yii::info("REST:             {$restCount}\n", 'processStatus');
             \Yii::info("CURRENT CARD_ID:  {$card['id']}\n", 'processStatus');
             \Yii::info("RANGE:            {$firstCardId} ~ {$lastCardId}\n", 'processStatus');
@@ -205,15 +232,28 @@ class AmazonScraperComponent extends ScraperComponent
 
         }
 
+        $restCount = $cardListCount - $count;
+
         \Yii::info("###########################################################\n", 'processStatus');
         \Yii::info("############         PROCESS FINISHED           ###########\n", 'processStatus');
         \Yii::info("###########################################################\n", 'processStatus');
-        \Yii::info("PROCESSED:        {$count}\n", 'processStatus');
+        \Yii::info("PROCESSED:        {$processed}\n", 'processStatus');
+        \Yii::info("SKIPPED:          {$skipped}\n", 'processStatus');
+        \Yii::info("COUNT:            {$count}\n", 'processStatus');
         \Yii::info("REST:             {$restCount}\n", 'processStatus');
         \Yii::info("RANGE:            {$firstCardId} ~ {$lastCardId}\n", 'processStatus');
         \Yii::info("TOTAL:            {$cardListCount}\n", 'processStatus');
         \Yii::info("###########################################################\n", 'processStatus');
 
+        return [
+            'count' => $count,
+            'processed' => $processed,
+            'skipped' => $skipped,
+            'rest' => $restCount,
+            'from' => $firstCardId,
+            'to' => $lastCardId,
+            'total' => $cardListCount,
+        ];
 
     }
 
@@ -367,6 +407,47 @@ class AmazonScraperComponent extends ScraperComponent
 
     }
 
+
+    /**
+     * 特定カードのIDについてASINデータの取得が必要かどうか
+     *
+     * @param $cardId カードID
+     * @return bool true:取得必要 false:取得不必要
+     */
+
+    private function isNeedFecthAsin($cardId)
+    {
+        $asinList = Amazonasin::find()
+            ->where([Amazonasin::kAttrKeyCardId => intval($cardId)])
+            ->asArray()
+            ->all();
+
+        //ASINデータがなければ取得必要
+        if(count($asinList) === 0){
+            return true;
+        }
+
+        $updatedAtList = [];
+
+        foreach($asinList as $asinData){
+            $updatedAtList[] = strtotime($asinData[Amazonasin::kAttrKeyUpdatedAt]);
+        }
+
+        if(count($updatedAtList) === 0){
+            return true;
+        }
+
+        $targetUpdatedAt = min($updatedAtList);
+
+        $targetStrUpdatedAt = date('Y-m-d H:i:s', $targetUpdatedAt);
+
+        //ASINデータが期限をすぎたら取得必要
+        if($this->util->isPassedCurrentDateTime($targetStrUpdatedAt, $this->expireAsinResult)){
+            return true;
+        }
+
+        return false;
+    }
 
 
     private function getAsinInfoListOrderByRank(array $asinRankList, $maxAsinCount)
@@ -862,7 +943,10 @@ class AmazonScraperComponent extends ScraperComponent
             //expire経過 ネットから取得
                 $crawler = $this->getCrawlerFromUrl($url);
                 $html = $this->getHTML($crawler);
-                $this->util->updateModelData($searchPage, ['html' => $html]);
+                if(!$this->util->updateModelData($searchPage, ['html' => $html])){
+                    $errMessage = "ERROR UPDATE FAIL: URL:".print_r($url, true)." MODEL:".print_r($modelName, true)." PARAMS:".print_r($modelParams, true)." \n";
+                    \Yii::error($errMessage, 'errors');
+                }
 
             } else {
                 $html = $searchPage->html;
@@ -875,7 +959,10 @@ class AmazonScraperComponent extends ScraperComponent
 
             $modelParams['url']  = $url;
             $modelParams['html'] = $html;
-            $this->util->saveModelData($modelName, $modelParams);
+            if(!$this->util->saveModelData($modelName, $modelParams)){
+                $errMessage = "ERROR SAVE FAIL: URL:".print_r($url, true)." MODEL:".print_r($modelName, true)." PARAMS:".print_r($modelParams, true)." \n";
+                \Yii::error($errMessage, 'errors');
+            }
 
         }
 
