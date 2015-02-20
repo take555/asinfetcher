@@ -71,34 +71,51 @@ class ScraperComponent extends Component
 
     }
 
-    public function postMulti(array $postParamsList)
+
+
+
+
+
+    public function postMulti(array $postParamsList, $fillContent = false, $timeOut = 60)
     {
 
         $multiHandler = curl_multi_init();
 
         $channels = [];
 
-        $timeout = 6 * 60 * 60;// 6 hours
 
 
 
         foreach ($postParamsList as $key => $postParams) {
 
             if(!isset($postParams[self::kParamsKeyUrl])){
-                echo "url not found:{$key}\n";
+                $logParams = [
+                    \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                    \pKey::kMSG    => "url not found {$key}",
+                    \pKey::kPARAMS => $postParams,
+                    \pKey::kFILE => __FILE__,
+                    \pKey::kLINE => __LINE__,
+                ];
+
+                \Yii::$app->flog->assignerInfo($logParams);
                 continue;
             }
 
-            echo "URL:".$postParams['url']."\n";
+
+            $tmpParams = [];
+
+            if(isset($postParams[self::kParamsKeyParams]) && is_array($postParams[self::kParamsKeyParams])){
+                $tmpParams = $postParams[self::kParamsKeyParams];
+            }
 
             $channels[$key] = curl_init();
             curl_setopt_array($channels[$key], [
                 CURLOPT_URL => $postParams[self::kParamsKeyUrl],
-                CURLOPT_TIMEOUT => $timeout,
+                CURLOPT_TIMEOUT => $timeOut,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $postParams[self::kParamsKeyParams],
+                CURLOPT_POSTFIELDS => $tmpParams,
 
             ]);
 
@@ -114,26 +131,61 @@ class ScraperComponent extends Component
         while ($status == CURLM_OK && $active);
 
         $responseList = [];
+        $responseInfoList = [];
 
-        foreach($channels as $ch){
+        foreach($channels as $key => $ch){
             $tmpContent = curl_multi_getcontent($ch)."\n\n";
 
-            $responseList[] = $tmpContent;
-            \Yii::info("RESPONSE:{$tmpContent}\n", 'cli_infos');
+
+            $responseData = [];
+            $responseInfo = [];
+
+            $responseData['content'] = $tmpContent;
+
+            if(!empty($tmpContent)){
+                if($fillContent === true){
+
+                    $responseInfo['content'] = $tmpContent;
+
+                } else {
+
+                    $responseInfo['content'] = mb_strlen($tmpContent);
+
+                }
+            } else {
+                $responseInfo['content'] = 0;
+            }
+
+            if(isset($postParamsList[$key][self::kParamsKeyUrl])){
+                $responseData[self::kParamsKeyUrl] = $postParamsList[$key][self::kParamsKeyUrl];
+                $responseInfo[self::kParamsKeyUrl] = $postParamsList[$key][self::kParamsKeyUrl];
+            }
+
+            if(isset($postParamsList[$key][self::kParamsKeyParams])){
+                $responseData[self::kParamsKeyParams] = $postParamsList[$key][self::kParamsKeyParams];
+                $responseInfo[self::kParamsKeyParams] = $postParamsList[$key][self::kParamsKeyParams];
+            }
+
+            $responseList[] = $responseData;
+            $responseInfoList[] = $responseInfo;
+
             curl_multi_remove_handle($multiHandler, $ch);
             curl_close($ch);
         }
 
         curl_multi_close($multiHandler);
 
-        \Yii::info("###########################################", 'cli_infos');
-        \Yii::info("#          ALL PROCESS FINISHED           #", 'cli_infos');
-        \Yii::info("###########################################", 'cli_infos');
-        \Yii::info("###########################################", 'cli_infos');
-        \Yii::info("########    RESPONSE SUMMERY     ##########", 'cli_infos');
-        \Yii::info("###########################################", 'cli_infos');
-        \Yii::info(print_r($responseList, true), 'cli_infos');
-        \Yii::info("###########################################", 'cli_infos');
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kPARAMS => $responseInfoList,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
+
+        return $responseList;
 
     }
 

@@ -11,6 +11,7 @@ return array(
     'Symfony\\Component\\BrowserKit\\' => array($vendorDir . '/symfony/browser-kit'),
     'HTMLPurifier' => array($vendorDir . '/ezyang/htmlpurifier/library'),
     'Goutte' => array($vendorDir . '/fabpot/goutte'),
+    'Fluent' => array($vendorDir . '/fluent/logger/src'),
     'Faker\\PHPUnit' => array($vendorDir . '/fzaninotto/faker/test'),
     'Faker' => array($vendorDir . '/fzaninotto/faker/src'),
     'Diff' => array($vendorDir . '/phpspec/php-diff/lib'),

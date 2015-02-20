@@ -66,11 +66,33 @@ class AsinController extends Controller
     public function actionOrchestrate($category2Id = 271, $test = null)
     {
 
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kMSG  => 'starting action orchestrate...',
+            \pKey::kPARAMS => ['category2Id' => $category2Id, 'test' => null],
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
+
         if(is_null($test)){
             $test = false;
+        } else {
+            $test = true;
         }
 
         \Yii::$app->amazon_scraper->assign($category2Id, $test);
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kMSG  => 'finishing action orchestrate',
+            \pKey::kPARAMS => ['category2Id' => $category2Id, 'test' => null],
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
         return 0;
 
     }
@@ -82,13 +104,25 @@ class AsinController extends Controller
         \Yii::info("###########################################\n", 'infos');
         \Yii::info("#             START TEST                  #\n", 'infos');
         \Yii::info("###########################################\n", 'infos');
-        $params = [
-            Card::kParamsKeyCat2Id => 271,
-            Card::kParamsKeyOffset  => 690,
-            Card::kParamsKeyLimit  => 2,
-        ];
 
-        \Yii::$app->amazon_scraper->curlTest();
+
+        for($i = 1;1000 > $i; $i++){
+
+            \Yii::$app->flog->put(\fTag::kERR, [
+                \pKey::kTYPE => 'db error',
+                \pKey::kPARAMS => [\pKey::kID => 'data'],
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ]);
+        }
+
+//        $params = [
+//            Card::kParamsKeyCat2Id => 271,
+//            Card::kParamsKeyOffset  => 690,
+//            Card::kParamsKeyLimit  => 2,
+//        ];
+//
+//        \Yii::$app->amazon_scraper->curlTest();
 
 //        $list = [
 //            'a' => 111,

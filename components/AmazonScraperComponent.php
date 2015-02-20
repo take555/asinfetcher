@@ -31,7 +31,9 @@ class AmazonScraperComponent extends ScraperComponent
 
     public $category2Id;
 
-    public $asinMaxCount;
+    public $asinRankMaxCount;
+
+    public $asinNoRankMaxCount;
 
     public $expireSearchResultPage;
 
@@ -42,6 +44,8 @@ class AmazonScraperComponent extends ScraperComponent
     public $category2;
 
     public $delim;
+
+    public $postTimeOut;
 
     public $rarityKanaList;
 
@@ -71,6 +75,14 @@ class AmazonScraperComponent extends ScraperComponent
     const kAMAZON_SEARCHINFO_KEY_URL     = 'url';
 
     const kAMAZON_SEARCHINFO_KEY_KEYWORD = 'key_word';
+
+    const kAMAZON_USED_EXHIBITS_NUM_KEY  = 'used';
+
+    const kAMAZON_NEW_EXHIBITS_NUM_KEY   = 'new';
+
+    const kAMAZON_RANK_KEY               = 'rank';
+
+    const kAMAZON_NORANK_KEY             = 'no_rank';
 
     const kAMAZON_MESSAGE_SEARCH_RESULT_NOT_FOUND = '一致する商品はありませんでした。';
 
@@ -171,21 +183,52 @@ class AmazonScraperComponent extends ScraperComponent
         $processed = 0;
         $skipped = 0;
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kMSG => "card count = {$cardListCount}",
+            \pKey::kPARAMS => $params,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
+
         foreach($cardList as $card){
 
-            if(!$this->isNeedFecthAsin($card[Card::kAttrKeyId])){
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
+
+            if(!$this->isNeedFetchAsin($card[Card::kAttrKeyId])){
+
                 $skipped++;
                 $count++;
                 $restCount = $cardListCount - $count;
-                \Yii::info("###########################################################\n", 'processStatus');
-                \Yii::info("PROCESSED:        {$processed}\n", 'processStatus');
-                \Yii::info("SKIPPED:          {$skipped}\n", 'processStatus');
-                \Yii::info("COUNT:            {$count}\n", 'processStatus');
-                \Yii::info("REST:             {$restCount}\n", 'processStatus');
-                \Yii::info("CURRENT CARD_ID:  {$card['id']}\n", 'processStatus');
-                \Yii::info("RANGE:            {$firstCardId} ~ {$lastCardId}\n", 'processStatus');
-                \Yii::info("TOTAL:            {$cardListCount}\n", 'processStatus');
-                \Yii::info("###########################################################\n", 'processStatus');
+
+                $infoData = [];
+                $infoData["PROCESSED"] = $processed;
+                $infoData["SKIPPED"]   = $skipped;
+                $infoData["COUNT"]     = $count;
+                $infoData["REST"]      = $restCount;
+                $infoData["CURRENT_CARD_ID"] = $card['id'];
+                $infoData["RANGE"]           = $firstCardId.' ~ '.$lastCardId;
+                $infoData["TOTAL"]           = $cardListCount;
+                $logParams = [
+                    \pKey::kTYPE => \pVal::kTYPE_PROCESS_ITEM,
+                    \pKey::kPARAMS => $infoData,
+                    \pKey::kFILE => __FILE__,
+                    \pKey::kLINE => __LINE__,
+                ];
+                \Yii::$app->flog->fetcherInfo($logParams);
 
                 continue;
             }
@@ -207,9 +250,14 @@ class AmazonScraperComponent extends ScraperComponent
             $amazonItemPageParams = [
                 Amazonitempage::kAttrKeyCardId => $card[Card::kAttrKeyId],
             ];
-            $asinRankList = $this->getAsinRankList($asinSetsList, $amazonItemPageParams);
 
-            $asinInfoList = $this->getAsinInfoListOrderByRank($asinRankList, $this->asinMaxCount);
+            $asinRankAndNoRankList = $this->getAsinRankList($asinSetsList, $amazonItemPageParams);
+
+            $asinRankList = $asinRankAndNoRankList[AmazonScraperComponent::kAMAZON_RANK_KEY];
+
+            $asinNoRankList = $asinRankAndNoRankList[AmazonScraperComponent::kAMAZON_NORANK_KEY];
+
+            $asinInfoList = $this->getAsinInfoListOrderByRank($asinRankList, $asinNoRankList, $this->asinRankMaxCount, $this->asinNoRankMaxCount);
 
             Amazonasin::storeAsinInfoList($asinInfoList, $card);
 
@@ -218,32 +266,52 @@ class AmazonScraperComponent extends ScraperComponent
 
             $restCount = $cardListCount - $count;
 
-            \Yii::info("###########################################################\n", 'processStatus');
-            \Yii::info("PROCESSED:        {$processed}\n", 'processStatus');
-            \Yii::info("SKIPPED:          {$skipped}\n", 'processStatus');
-            \Yii::info("COUNT:            {$count}\n", 'processStatus');
-            \Yii::info("REST:             {$restCount}\n", 'processStatus');
-            \Yii::info("CURRENT CARD_ID:  {$card['id']}\n", 'processStatus');
-            \Yii::info("RANGE:            {$firstCardId} ~ {$lastCardId}\n", 'processStatus');
-            \Yii::info("TOTAL:            {$cardListCount}\n", 'processStatus');
-            \Yii::info("###########################################################\n", 'processStatus');
+            $infoData = [];
+            $infoData["PROCESSED"] = $processed;
+            $infoData["SKIPPED"]   = $skipped;
+            $infoData["COUNT"]     = $count;
+            $infoData["REST"]      = $restCount;
+            $infoData["CURRENT_CARD_ID"] = $card['id'];
+            $infoData["RANGE"]           = $firstCardId.' ~ '.$lastCardId;
+            $infoData["TOTAL"]           = $cardListCount;
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS_ITEM,
+                \pKey::kPARAMS => $infoData,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+
+            \Yii::$app->flog->fetcherInfo($logParams);
 
 
 
         }
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
+
         $restCount = $cardListCount - $count;
 
-        \Yii::info("###########################################################\n", 'processStatus');
-        \Yii::info("############         PROCESS FINISHED           ###########\n", 'processStatus');
-        \Yii::info("###########################################################\n", 'processStatus');
-        \Yii::info("PROCESSED:        {$processed}\n", 'processStatus');
-        \Yii::info("SKIPPED:          {$skipped}\n", 'processStatus');
-        \Yii::info("COUNT:            {$count}\n", 'processStatus');
-        \Yii::info("REST:             {$restCount}\n", 'processStatus');
-        \Yii::info("RANGE:            {$firstCardId} ~ {$lastCardId}\n", 'processStatus');
-        \Yii::info("TOTAL:            {$cardListCount}\n", 'processStatus');
-        \Yii::info("###########################################################\n", 'processStatus');
+        $infoData = [];
+        $infoData["PROCESSED"] = $processed;
+        $infoData["SKIPPED"]   = $skipped;
+        $infoData["COUNT"]     = $count;
+        $infoData["REST"]      = $restCount;
+        $infoData["RANGE"]           = $firstCardId.' ~ '.$lastCardId;
+        $infoData["TOTAL"]           = $cardListCount;
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS_ITEM,
+            \pKey::kMSG  => "PROCESS FINISHED",
+            \pKey::kPARAMS => $infoData,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->fetcherInfo($logParams);
 
         return [
             'count' => $count,
@@ -357,13 +425,28 @@ class AmazonScraperComponent extends ScraperComponent
 
         if($fetcherCount === 0){
             $errMessage = "no fetcher server.you should add server to amazon_scraper config fetcherList\n";
-            \Yii::error($errMessage, 'errors');
-            echo $errMessage."\n";
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_ERR,
+                \pKey::kMSG => $errMessage,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+
+            \Yii::$app->flog->assignerErr($logParams);
             return 0;
         }
 
-        \Yii::info("FETCHER COUNT:{$fetcherCount}\n", "cli_infos");
+        $countMsg = "FETCHER COUNT:{$fetcherCount}\n";
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_ERR,
+            \pKey::kMSG => $countMsg,
+            \pKey::kPARAMS => $this->fetcherList,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
 
         $totalProcessCount = Card::find()
             ->where([Card::kAttrKeyCat2Id => intval($category2Id)])
@@ -403,7 +486,23 @@ class AmazonScraperComponent extends ScraperComponent
 
         }
 
-        $this->postMulti($postParamsList);
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kPARAMS => $postParamsList,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
+
+        $fillContent = false;
+
+        if($test === true){
+            $fillContent = true;
+        }
+
+
+        $this->postMulti($postParamsList, $fillContent,  $this->postTimeOut);
 
     }
 
@@ -415,7 +514,7 @@ class AmazonScraperComponent extends ScraperComponent
      * @return bool true:取得必要 false:取得不必要
      */
 
-    private function isNeedFecthAsin($cardId)
+    private function isNeedFetchAsin($cardId)
     {
         $asinList = Amazonasin::find()
             ->where([Amazonasin::kAttrKeyCardId => intval($cardId)])
@@ -450,8 +549,10 @@ class AmazonScraperComponent extends ScraperComponent
     }
 
 
-    private function getAsinInfoListOrderByRank(array $asinRankList, $maxAsinCount)
+    private function getAsinInfoListOrderByRank(array $asinRankList, array $asinNoRankList, $maxAsinCount, $maxNoRankAsinCount)
     {
+
+        //rankありasinデータのソート
 
         $asinInfoList = [];
 
@@ -466,19 +567,109 @@ class AmazonScraperComponent extends ScraperComponent
             }
         }
 
+        //rankなしasinデータのソート
+        $sortedAsinNoRankList = [];
+
+        foreach ($asinNoRankList as $credit => $asinNoRankSetList) {
+            $sortedAsinNoRankList[$credit] = $this->getSortedAsinNoRankSetList($asinNoRankSetList);
+        }
+
+        $noRankAsinCount = 0;
+
+        $breakFlag = false;
+
+        foreach ($sortedAsinNoRankList as $credit => $sortedAsinNoRankSetList) {
+            if($breakFlag === true){
+                break;
+            }
+            foreach ($sortedAsinNoRankSetList as $asin => $sortedAsinNoRankSet) {
+                if($noRankAsinCount >= $maxNoRankAsinCount){
+                    $breakFlag = true;
+                    break;
+                }
+
+                $asinInfoList[] = [
+                    self::kAMAZON_RULE_KEY_CREDIT => $credit,
+                    'asin'   => $sortedAsinNoRankSet['asin'],
+                    self::kAMAZON_NEW_EXHIBITS_NUM_KEY   => $sortedAsinNoRankSet[self::kAMAZON_NEW_EXHIBITS_NUM_KEY],
+                    self::kAMAZON_USED_EXHIBITS_NUM_KEY   => $sortedAsinNoRankSet[self::kAMAZON_USED_EXHIBITS_NUM_KEY],
+                ];
+                $noRankAsinCount++;
+            }
+        }
+
+
         return $asinInfoList;
 
     }
 
+    public function getSortedAsinNoRankSetList(array $asinNoRankSetList)
+    {
+        uasort($asinNoRankSetList, [$this, 'compareAsinWithExhibitItemCount']);
+        return $asinNoRankSetList;
+
+    }
+
+    /**
+     * 同レベルのcreditのASINを中古出品数、新品出品数で比較する
+     * 比較ルール
+     * ・中古出品数が多い方が上位
+     * ・中古出品数が同数の場合、新品出品数が多い方が上位
+     *
+     * @param $asinNoRankDataA
+     * @param $asinNoRankDataB
+     * @return int
+     */
+
+
+    private function compareAsinWithExhibitItemCount($asinNoRankDataA, $asinNoRankDataB)
+    {
+        //中古出品数で比較
+        if(isset($asinNoRankDataA[self::kAMAZON_USED_EXHIBITS_NUM_KEY]) && isset($asinNoRankDataB[self::kAMAZON_USED_EXHIBITS_NUM_KEY])){
+
+
+            //同数の場合
+            if(intval($asinNoRankDataA[self::kAMAZON_USED_EXHIBITS_NUM_KEY]) === intval($asinNoRankDataB[self::kAMAZON_USED_EXHIBITS_NUM_KEY])){
+                //新品出品数で比較
+                if(isset($asinNoRankDataA[self::kAMAZON_NEW_EXHIBITS_NUM_KEY]) && isset($asinNoRankDataB[self::kAMAZON_NEW_EXHIBITS_NUM_KEY])){
+                    //同数の場合
+                    if(intval($asinNoRankDataA[self::kAMAZON_NEW_EXHIBITS_NUM_KEY]) === intval($asinNoRankDataB[self::kAMAZON_NEW_EXHIBITS_NUM_KEY])){
+                        return 0;
+                    }
+
+                    //Aの方が大きい
+                    if(intval($asinNoRankDataA[self::kAMAZON_NEW_EXHIBITS_NUM_KEY]) > intval($asinNoRankDataB[self::kAMAZON_NEW_EXHIBITS_NUM_KEY])){
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+
+                } else {
+                    return 0;
+                }
+            }
+
+            //Aの方が大きい
+            if(intval($asinNoRankDataA[self::kAMAZON_USED_EXHIBITS_NUM_KEY]) > intval($asinNoRankDataB[self::kAMAZON_USED_EXHIBITS_NUM_KEY])){
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
 
 
     public function getAsinRankList($asinSetsList, $params = [])
     {
         $asinRankSetsList = [];
+        $asinNoRankSetsList = [];
 
         foreach ($asinSetsList as $credit =>  $asinSets) {
 
             $tmpAsinRankSets = [];
+            $tmpAsinNoRankSets = [];
 
             foreach($asinSets as $asin){
                 $itemPageUrl = $this->getItemPageUrl($asin);
@@ -490,6 +681,13 @@ class AmazonScraperComponent extends ScraperComponent
                         self::kAMAZON_ASINRANK_LIST_KEY_RANK => $rank,
                         self::kAMAZON_ASINRANK_LIST_KEY_ASIN => $asin,
                     ];
+                } else {
+                //ランクなし
+                    $tmpNumberOfExhibitsData = $this->getNumberOfExhibits($crawler);
+                    if($tmpNumberOfExhibitsData){
+                        $tmpNumberOfExhibitsData[self::kAMAZON_ASINRANK_LIST_KEY_ASIN] = $asin;
+                        $tmpAsinNoRankSets[$asin] = $tmpNumberOfExhibitsData;
+                    }
                 }
             }
 
@@ -497,9 +695,14 @@ class AmazonScraperComponent extends ScraperComponent
             if(count($tmpAsinRankSets) > 0){
                 $asinRankSetsList[$credit] = $tmpAsinRankSets;
             }
+
+            if(count($tmpAsinNoRankSets) > 0){
+                $asinNoRankSetsList[$credit] = $tmpAsinNoRankSets;
+            }
+
         }
 
-        return $asinRankSetsList;
+        return [self::kAMAZON_RANK_KEY => $asinRankSetsList,self::kAMAZON_NORANK_KEY => $asinNoRankSetsList];
     }
 
     public function getRankFromItemPage(\Symfony\Component\DomCrawler\Crawler $clawler)
@@ -524,6 +727,80 @@ class AmazonScraperComponent extends ScraperComponent
 
         return false;
     }
+
+    /**
+     * ランクに載っていないASINコードの出品数データを取得する
+     *
+     * @param Crawler $clawler 当該ASINコードのitemページのクローラー
+     * @return array
+     *
+     * [
+     *   "100"(credit) => [
+     *       "xxxx"(asin) => ["new"(新品出品数) => xx, "used"(中古出品数) => xx],
+     *       "xxxx"(asin) => ["new" => xx, "used" => xx],
+     *       "xxxx"(asin) => ["new" => xx, "used" => xx],
+     *   ],
+     *   "70"(credit) => [
+     *       "xxxx"(asin) => ["new" => xx, "used" => xx],
+     *       "xxxx"(asin) => ["new" => xx, "used" => xx],
+     *       "xxxx"(asin) => ["new" => xx, "used" => xx],
+     *   ],
+     * ]
+     */
+
+
+
+    public function getNumberOfExhibits(\Symfony\Component\DomCrawler\Crawler $clawler)
+    {
+        $tmpItemCountData = $clawler->filter('span.olp-padding-right a')->each(function (Crawler $node ,$i){
+
+            $patternNewItemCount = "/新品の出品.+([0-9]+)/";
+            $patternUsedItemCount = "/中古品の出品.+([0-9]+)/";
+
+
+            $tmpText = trim($node->text());
+            $matches = [];
+
+            if(preg_match($patternNewItemCount, $tmpText, $matches)){
+                if(count($matches) >= 2){
+                    return [self::kAMAZON_NEW_EXHIBITS_NUM_KEY => $matches[1]];
+                } else {
+                    return [self::kAMAZON_NEW_EXHIBITS_NUM_KEY => 0];
+                }
+            } elseif(preg_match($patternUsedItemCount, $tmpText, $matches)){
+                if(count($matches) >= 2){
+                    return [self::kAMAZON_USED_EXHIBITS_NUM_KEY => $matches[1]];
+                } else {
+                    return [self::kAMAZON_USED_EXHIBITS_NUM_KEY => 0];
+                }
+
+            }
+            return false;
+        });
+
+        $itemCountData = [];
+
+        foreach($tmpItemCountData as $tmpData){
+            if(is_array($tmpData) && count($tmpData) > 0){
+                if(isset($tmpData[self::kAMAZON_NEW_EXHIBITS_NUM_KEY])) {
+                    $itemCountData[self::kAMAZON_NEW_EXHIBITS_NUM_KEY] = $tmpData[self::kAMAZON_NEW_EXHIBITS_NUM_KEY];
+                } else {
+                    $itemCountData[self::kAMAZON_NEW_EXHIBITS_NUM_KEY] = 0;
+                }
+
+                if(isset($tmpData[self::kAMAZON_USED_EXHIBITS_NUM_KEY])){
+                    $itemCountData[self::kAMAZON_USED_EXHIBITS_NUM_KEY] = $tmpData[self::kAMAZON_USED_EXHIBITS_NUM_KEY];
+                } else {
+                    $itemCountData[self::kAMAZON_USED_EXHIBITS_NUM_KEY] = 0;
+
+                }
+            }
+        }
+
+        return $itemCountData;
+
+    }
+
 
 
     public function getItemPageUrl($asin)
@@ -943,9 +1220,25 @@ class AmazonScraperComponent extends ScraperComponent
             //expire経過 ネットから取得
                 $crawler = $this->getCrawlerFromUrl($url);
                 $html = $this->getHTML($crawler);
+
+                $logParams = [
+                    \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                    \pKey::kPARAMS => ['url' => $url,'modelName' => $modelName, 'modelParams' => $modelParams],
+                    \pKey::kFILE => __FILE__,
+                    \pKey::kLINE => __LINE__,
+                ];
+
+                \Yii::$app->flog->fetcherInfo($logParams);
+
                 if(!$this->util->updateModelData($searchPage, ['html' => $html])){
-                    $errMessage = "ERROR UPDATE FAIL: URL:".print_r($url, true)." MODEL:".print_r($modelName, true)." PARAMS:".print_r($modelParams, true)." \n";
-                    \Yii::error($errMessage, 'errors');
+                    $logParams = [
+                        \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                        \pKey::kPARAMS => ['url' => $url,'modelName' => $modelName, 'modelParams' => $modelParams],
+                        \pKey::kFILE => __FILE__,
+                        \pKey::kLINE => __LINE__,
+                    ];
+
+                    \Yii::$app->flog->fetcherErr($logParams);
                 }
 
             } else {
@@ -961,6 +1254,14 @@ class AmazonScraperComponent extends ScraperComponent
             $modelParams['html'] = $html;
             if(!$this->util->saveModelData($modelName, $modelParams)){
                 $errMessage = "ERROR SAVE FAIL: URL:".print_r($url, true)." MODEL:".print_r($modelName, true)." PARAMS:".print_r($modelParams, true)." \n";
+                $logParams = [
+                    \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                    \pKey::kPARAMS => ['url' => $url,'modelName' => $modelName, 'modelParams' => $modelParams],
+                    \pKey::kFILE => __FILE__,
+                    \pKey::kLINE => __LINE__,
+                ];
+
+                \Yii::$app->flog->fetcherErr($logParams);
                 \Yii::error($errMessage, 'errors');
             }
 

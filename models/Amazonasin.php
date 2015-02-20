@@ -13,6 +13,8 @@ use Yii;
  * @property integer $amazonitempage_id
  * @property string $asin
  * @property integer $rank
+ * @property integer $new_itemcount
+ * @property integer $used_itemcount
  * @property integer $credit
  * @property string $updated_at
  * @property string $created_at
@@ -43,7 +45,7 @@ class Amazonasin extends \yii\db\ActiveRecord
     {
         return [
             [['card_id', 'amazonitempage_id', 'asin', 'credit', 'updated_at', 'created_at'], 'required'],
-            [['card_id', 'amazonitempage_id', 'rank', 'credit'], 'integer'],
+            [['card_id', 'amazonitempage_id', 'rank', 'new_itemcount', 'used_itemcount', 'credit'], 'integer'],
             [['updated_at', 'created_at'], 'safe'],
             [['asin'], 'string', 'max' => 255]
         ];
@@ -60,6 +62,8 @@ class Amazonasin extends \yii\db\ActiveRecord
             'amazonitempage_id' => 'Amazonitempage ID',
             'asin' => 'Asin',
             'rank' => 'Rank',
+            'new_itemcount' => 'New Itemcount',
+            'used_itemcount' => 'Used Itemcount',
             'credit' => 'Credit',
             'updated_at' => 'Updated At',
             'created_at' => 'Created At',
@@ -92,7 +96,19 @@ class Amazonasin extends \yii\db\ActiveRecord
 
             if($asinInfoObj && $asinInfoObj instanceof Amazonasin){
 
-                $asinInfoObj->rank = $asinInfo['rank'];
+
+                if(isset($asinInfo['rank'])){
+                    $asinInfoObj->rank = $asinInfo['rank'];
+                }
+
+                if(isset($asinInfo['used'])){
+                    $asinInfoObj->used_itemcount = $asinInfo['used'];
+                }
+
+                if(isset($asinInfo['new'])){
+                    $asinInfoObj->new_itemcount = $asinInfo['new'];
+                }
+
                 $datetime = date('Y-m-d H:i:s');
                 $asinInfoObj->updated_at = $datetime;
                 if(!$asinInfoObj->update()){
@@ -118,7 +134,19 @@ class Amazonasin extends \yii\db\ActiveRecord
                 $asinInfoObj = new Amazonasin();
                 $asinInfoObj->card_id    = $card[Card::kAttrKeyId];
                 $asinInfoObj->asin       = $asinInfo['asin'];
-                $asinInfoObj->rank       = $asinInfo['rank'];
+
+                if(isset($asinInfo['rank'])){
+                    $asinInfoObj->rank = $asinInfo['rank'];
+                }
+
+                if(isset($asinInfo['used'])){
+                    $asinInfoObj->used_itemcount = $asinInfo['used'];
+                }
+
+                if(isset($asinInfo['new'])){
+                    $asinInfoObj->new_itemcount = $asinInfo['new'];
+                }
+
                 $asinInfoObj->credit     = $asinInfo['credit'];
                 if($amazonItemPage instanceof Amazonitempage){
                     $asinInfoObj->amazonitempage_id = $amazonItemPage->id;

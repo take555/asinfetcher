@@ -143,9 +143,38 @@ class UtilComponent extends Component
     {
         $searchWordList = [];
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kPARAMS => $assocKeyRuleList,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
+
         foreach($assocKeyRuleList as $key){
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kPARAMS => ['key' => $key, 'wordAssocList' => $wordAssocList],
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
             $searchWordList[] = $this->getValueFromMultiDimensionArray($key, $wordAssocList);
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
         }
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kPARAMS => $searchWordList,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
 
         return join($delim, $searchWordList);
     }
@@ -161,9 +190,30 @@ class UtilComponent extends Component
 
     public function getSearchWordList(array $wordAssocList, array $assocKeyRuleSetList, $delim)
     {
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
         $searchWordList = [];
         foreach($assocKeyRuleSetList as $assocKeyRuleSet){
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kPARAMS => ['wordAssocList' => $wordAssocList, 'assocKeyRuleSet' => $assocKeyRuleSet, 'delim' => $delim],
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
             $searchWordList[] = $this->getSearchWord($wordAssocList, $assocKeyRuleSet, $delim);
+
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kPARAMS => $searchWordList,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
         }
         return $searchWordList;
     }
@@ -181,28 +231,94 @@ class UtilComponent extends Component
     {
 
         if(!is_array($assocArray)){
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
             return $assocArray;
         }
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
         $propertyList = explode('.', $propertyElm);
         if(count($propertyList) > 1){
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
             if(isset($assocArray[$propertyList[0]])){
+                $logParams = [
+                    \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                    \pKey::kFILE => __FILE__,
+                    \pKey::kLINE => __LINE__,
+                ];
+                \Yii::$app->flog->fetcherInfo($logParams);
                 $assocArray = $assocArray[$propertyList[0]];
                 array_shift($propertyList);
                 $propertyElm = join('.', $propertyList);
+                $logParams = [
+                    \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                    \pKey::kFILE => __FILE__,
+                    \pKey::kLINE => __LINE__,
+                ];
+                \Yii::$app->flog->fetcherInfo($logParams);
                 return $this->getValueFromMultiDimensionArray($propertyElm, $assocArray);
             }
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
             return $assocArray;
         }
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
         if(isset($assocArray[$propertyList[0]])){
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
             return $assocArray[$propertyList[0]];
         }
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
         if(is_null($assocArray[$propertyList[0]])){
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+            \Yii::$app->flog->fetcherInfo($logParams);
             return "";
         }
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->fetcherInfo($logParams);
         return $assocArray;
     }
 
@@ -364,17 +480,39 @@ class UtilComponent extends Component
     public function updateModelData($modelObj, array $params)
     {
 
+        if(!$modelObj){
+            return false;
+        }
+
+
         foreach ($params as $attr => $val) {
-            if($modelObj->className()->hasAttribute($attr)){
+
+            if($modelObj->hasAttribute($attr)){
+
                 $modelObj->$attr = $val;
             }
         }
         $modelObj->updated_at = date('Y-m-d H:i:s');
 
         if(!$modelObj->update()){
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_ERR,
+                \pKey::kPARAMS => ['modelObj' => print_r($modelObj, true), 'attrs' => $params],
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+
+            \Yii::$app->flog->fetcherErr($logParams);
             return false;
         }
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->fetcherInfo($logParams);
         return true;
 
     }
@@ -418,34 +556,30 @@ class UtilComponent extends Component
             if(!$modelObj->save()){
 
                 $errorList = $modelObj->getErrors();
-                $attributes = $modelObj->getAttributes();
 
-                $title = "\n############# SAVE ERROR: {$modelName} model ###############\n";
-                $modelParams = "MODEL PARAMS:\n".print_r($attributes)."\n";
-                $errorInfo = "ERROR INFO:\n".print_r($errorList)."\n";
-                $line = "############################################################\n\n";
+                $logParams = [
+                    \pKey::kTYPE => \pVal::kTYPE_ERR,
+                    \pKey::kPARAMS => ['modelObj' => $modelName, 'params' => $params, 'errorList' => $errorList],
+                    \pKey::kFILE => __FILE__,
+                    \pKey::kLINE => __LINE__,
+                ];
 
-                $errMessage = $title.$modelParams.$errorInfo.$line;
-
-                Yii::error($errMessage, 'dbErrors');
+                \Yii::$app->flog->fetcherErr($logParams);
 
 
                 return false;
             }
         } catch (Exception $e){
 
-            $attributes = $modelObj->getAttributes();
-            $title = "\n############# DB ERROR: {$modelName} model ###############\n";
-            $modelParams = "MODEL PARAMS:\n".print_r($attributes)."\n";
-            $er = "ERROR MSG:".print_r($e->getMessage())."\n";
-            $ec = "ERROR CODE:".print_r($e->getCode())."\n";
-            $el = "ERROR LINE:".print_r($e->getLine())."\n";
-            $line = "############################################################\n\n";
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_ERR_DB,
+                \pKey::kPARAMS => ['modelObj' => $modelName, 'params' => $params, 'err_msg' => $e->getMessage(), 'err_code' => $e->getCode(), 'err_line' => $e->getLine()],
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
 
-            $errMessage = $title.$modelParams.$er.$ec.$el.$line;
-
-            Yii::error($errMessage, 'dbErrors');
-            return fasle;
+            \Yii::$app->flog->fetcherErr($logParams);
+            return false;
         }
 
 
