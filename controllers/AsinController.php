@@ -129,7 +129,16 @@ class AsinController extends Controller
     {
         $params = Yii::$app->request->post();
 
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kPARAMS => $params,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
 
+        \Yii::$app->flog->assignerInfo($logParams);
+
+        $result =  \Yii::$app->amazon_scraper->executeAssignJobs(271, 2000, 10, 101);
 //        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 //        $itemPageList = Amazonitempage::find()
 //            ->limit(5)
@@ -141,86 +150,87 @@ class AsinController extends Controller
 //            $itemCountDataList = \Yii::$app->amazon_scraper->getNumberOfExhibits($crawler);
 //        }
 
-        $asinNoRankSetList1 = [
-            'ABCDE' => [
-                'new' => 2,
-                'used' => 2,
-                'asin' => 'ABCDE',
-            ],
-            'XYZ' => [
-                'new' => 5,
-                'used' => 5,
-                'asin' => 'XYZ',
-            ],
-            'OPQ' => [
-                'new' => 3,
-                'used' => 0,
-                'asin' => 'OPQ',
-            ],
-            'LMN' => [
-                'new' => 5,
-                'used' => 10,
-                'asin' => 'LMN',
-            ],
-        ];
-        //LMN , XYZ, ABCDE, OPQ
-
-
-
-        $asinNoRankSetList2 = [
-            'ABCDE' => [
-                'new' => 0,
-                'used' => 5,
-                'asin' => 'ABCDE',
-            ],
-            'XYZ' => [
-                'new' => 5,
-                'used' => 5,
-                'asin' => 'XYZ',
-            ],
-            'OPQ' => [
-                'new' => 3,
-                'used' => 5,
-                'asin' => 'OPQ',
-            ],
-            'LMN' => [
-                'new' => 0,
-                'used' => 10,
-                'asin' => 'LMN',
-            ],
-        ];
-
-        //LMN , XYZ, OPQ, ABCDE
-
-        $asinNoRankSetList3 = [
-            'ABCDE' => [
-                'new' => 0,
-                'used' => 0,
-                'asin' => 'ABCDE',
-            ],
-            'XYZ' => [
-                'new' => 0,
-                'used' => 0,
-                'asin' => 'XYZ',
-            ],
-            'OPQ' => [
-                'new' => 0,
-                'used' => 0,
-                'asin' => 'OPQ',
-            ],
-            'LMN' => [
-                'new' => 0,
-                'used' => 0,
-                'asin' => 'LMN',
-            ],
-        ];
-
-        $result1 = \Yii::$app->amazon_scraper->getSortedAsinNoRankSetList($asinNoRankSetList1);
-        $result2 = \Yii::$app->amazon_scraper->getSortedAsinNoRankSetList($asinNoRankSetList2);
-        $result3 = \Yii::$app->amazon_scraper->getSortedAsinNoRankSetList($asinNoRankSetList3);
-        $test = 0;
+//        $asinNoRankSetList1 = [
+//            'ABCDE' => [
+//                'new' => 2,
+//                'used' => 2,
+//                'asin' => 'ABCDE',
+//            ],
+//            'XYZ' => [
+//                'new' => 5,
+//                'used' => 5,
+//                'asin' => 'XYZ',
+//            ],
+//            'OPQ' => [
+//                'new' => 3,
+//                'used' => 0,
+//                'asin' => 'OPQ',
+//            ],
+//            'LMN' => [
+//                'new' => 5,
+//                'used' => 10,
+//                'asin' => 'LMN',
+//            ],
+//        ];
+//        //LMN , XYZ, ABCDE, OPQ
+//
+//
+//
+//        $asinNoRankSetList2 = [
+//            'ABCDE' => [
+//                'new' => 0,
+//                'used' => 5,
+//                'asin' => 'ABCDE',
+//            ],
+//            'XYZ' => [
+//                'new' => 5,
+//                'used' => 5,
+//                'asin' => 'XYZ',
+//            ],
+//            'OPQ' => [
+//                'new' => 3,
+//                'used' => 5,
+//                'asin' => 'OPQ',
+//            ],
+//            'LMN' => [
+//                'new' => 0,
+//                'used' => 10,
+//                'asin' => 'LMN',
+//            ],
+//        ];
+//
+//        //LMN , XYZ, OPQ, ABCDE
+//
+//        $asinNoRankSetList3 = [
+//            'ABCDE' => [
+//                'new' => 0,
+//                'used' => 0,
+//                'asin' => 'ABCDE',
+//            ],
+//            'XYZ' => [
+//                'new' => 0,
+//                'used' => 0,
+//                'asin' => 'XYZ',
+//            ],
+//            'OPQ' => [
+//                'new' => 0,
+//                'used' => 0,
+//                'asin' => 'OPQ',
+//            ],
+//            'LMN' => [
+//                'new' => 0,
+//                'used' => 0,
+//                'asin' => 'LMN',
+//            ],
+//        ];
+//
+//        $result1 = \Yii::$app->amazon_scraper->getSortedAsinNoRankSetList($asinNoRankSetList1);
+//        $result2 = \Yii::$app->amazon_scraper->getSortedAsinNoRankSetList($asinNoRankSetList2);
+//        $result3 = \Yii::$app->amazon_scraper->getSortedAsinNoRankSetList($asinNoRankSetList3);
+//        $test = 0;
 //        \Yii::info("POST PARAMS:".print_r($params,true)."\n", "infos");
 
+        //$result =  \Yii::$app->amazon_scraper->assignChunkJob(271, 2000, 10, 101);
 
         return ['code' => 200, 'params' => $params];
 

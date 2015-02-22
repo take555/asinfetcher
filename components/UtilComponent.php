@@ -232,7 +232,8 @@ class UtilComponent extends Component
 
         if(!is_array($assocArray)){
             $logParams = [
-                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+                \pKey::kPARAMS => ['PROPERTY_ELM' => $propertyElm, 'ASSOC_ARRAY' => $assocArray],
                 \pKey::kFILE => __FILE__,
                 \pKey::kLINE => __LINE__,
             ];
@@ -241,7 +242,8 @@ class UtilComponent extends Component
         }
 
         $logParams = [
-            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+            \pKey::kPARAMS => ['PROPERTY_ELM' => $propertyElm, 'ASSOC_ARRAY' => $assocArray],
             \pKey::kFILE => __FILE__,
             \pKey::kLINE => __LINE__,
         ];
@@ -249,14 +251,16 @@ class UtilComponent extends Component
         $propertyList = explode('.', $propertyElm);
         if(count($propertyList) > 1){
             $logParams = [
-                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+                \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
                 \pKey::kFILE => __FILE__,
                 \pKey::kLINE => __LINE__,
             ];
             \Yii::$app->flog->fetcherInfo($logParams);
             if(isset($assocArray[$propertyList[0]])){
                 $logParams = [
-                    \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                    \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+                    \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
                     \pKey::kFILE => __FILE__,
                     \pKey::kLINE => __LINE__,
                 ];
@@ -265,7 +269,8 @@ class UtilComponent extends Component
                 array_shift($propertyList);
                 $propertyElm = join('.', $propertyList);
                 $logParams = [
-                    \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                    \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+                    \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
                     \pKey::kFILE => __FILE__,
                     \pKey::kLINE => __LINE__,
                 ];
@@ -273,7 +278,8 @@ class UtilComponent extends Component
                 return $this->getValueFromMultiDimensionArray($propertyElm, $assocArray);
             }
             $logParams = [
-                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+                \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
                 \pKey::kFILE => __FILE__,
                 \pKey::kLINE => __LINE__,
             ];
@@ -282,14 +288,16 @@ class UtilComponent extends Component
         }
 
         $logParams = [
-            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+            \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
             \pKey::kFILE => __FILE__,
             \pKey::kLINE => __LINE__,
         ];
         \Yii::$app->flog->fetcherInfo($logParams);
         if(isset($assocArray[$propertyList[0]])){
             $logParams = [
-                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+                \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
                 \pKey::kFILE => __FILE__,
                 \pKey::kLINE => __LINE__,
             ];
@@ -298,14 +306,16 @@ class UtilComponent extends Component
         }
 
         $logParams = [
-            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+            \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
             \pKey::kFILE => __FILE__,
             \pKey::kLINE => __LINE__,
         ];
         \Yii::$app->flog->fetcherInfo($logParams);
         if(is_null($assocArray[$propertyList[0]])){
             $logParams = [
-                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+                \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
                 \pKey::kFILE => __FILE__,
                 \pKey::kLINE => __LINE__,
             ];
@@ -314,7 +324,8 @@ class UtilComponent extends Component
         }
 
         $logParams = [
-            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS_UTIL_MULTI,
+            \pKey::kPARAMS => ['PROPERTY_LIST' => $propertyList, 'ASSOC_ARRAY' => $assocArray],
             \pKey::kFILE => __FILE__,
             \pKey::kLINE => __LINE__,
         ];

@@ -97,24 +97,55 @@ class AsinController extends Controller
 
     }
 
+    public function actionAssignjobs($category2Id = 271, $startOffset = 2000, $limit = 100, $startId = 1000, $callSetCount = null)
+    {
+
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kMSG  => 'starting action assigned job...',
+            \pKey::kPARAMS => ['category2Id' => $category2Id, 'test' => null],
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
+
+        \Yii::$app->amazon_scraper->executeAssignJobs($category2Id, $startOffset, $limit, $startId, $callSetCount);
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kMSG  => 'ASSIGNNING TASK FISHISHED',
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
+
+
+
+
+        return 0;
+
+    }
 
 
     public function actionTest()
     {
-        \Yii::info("###########################################\n", 'infos');
-        \Yii::info("#             START TEST                  #\n", 'infos');
-        \Yii::info("###########################################\n", 'infos');
 
 
-        for($i = 1;1000 > $i; $i++){
+        //$url = "http://localhost/index.php?r=asin/test";
 
-            \Yii::$app->flog->put(\fTag::kERR, [
-                \pKey::kTYPE => 'db error',
-                \pKey::kPARAMS => [\pKey::kID => 'data'],
-                \pKey::kFILE => __FILE__,
-                \pKey::kLINE => __LINE__,
-            ]);
-        }
+        $url = "http://www.yahoo.co.jp";
+
+        $params = [
+            'name' => 'test',
+            'limit' => 100,
+            'offset' => 99,
+        ];
+
+        //\Yii::$app->amazon_scraper->postAsinc($url, $params);
+
 
 //        $params = [
 //            Card::kParamsKeyCat2Id => 271,

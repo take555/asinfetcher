@@ -113,23 +113,23 @@ class AmazonScraperComponent extends ScraperComponent
             'Gold-Secret-Rare' => 'ゴールドシークレットレア',
         );
 
-        $this->rarityEnList = array(
+        $this->rarityEnList = [
             'Normal' => 'N',
             'Gold' => 'GR',
             'Parallel' => 'PRR',
             'Rare' => 'R',
-            'Secret' => array('SI','SCR'),
+            'Secret' => ['SI','SCR'],
             'Super' => 'SR',
             'Ultimate' => 'RR',
-            'Ultra' => array('UR','UTR'),
-            'Holographic' => 'HR',
+            'Ultra' => ['UR','UTR'],
+            'Holographic' => ['HR', 'H'],
             'N-Parallel' => 'NP',
             'N-Rare' => 'NR',
             'Ul-Secret' => 'SCR',
             'Collectors-Rare' => 'CR',
             'Millennium-Rare' => 'MR',
             'Gold-Secret-Rare' => 'GC',
-        );
+        ];
 
 
         $this->rarityList = array(
@@ -506,6 +506,214 @@ class AmazonScraperComponent extends ScraperComponent
 
     }
 
+    public function executeAssignJobs($category2Id, $startOffset, $limit, $startId = null, $callSetCount = null)
+    {
+        $callSetList = $this->getAssignedTaskList($category2Id, $startOffset, $limit, $startId, $callSetCount);
+
+
+        $baseProcessingTimeUnit = 30;
+
+
+
+
+        foreach($callSetList as $callSet){
+
+            $totalLimit = 0;
+
+            $callSetCount = count($callSet);
+
+            foreach ($callSet as $call) {
+
+                if(isset($call[self::kParamsKeyParams]['limit'])){
+                    $totalLimit = $totalLimit + intval($call[self::kParamsKeyParams]['limit']);
+                }
+                $this->postAsinc($call[self::kParamsKeyUrl], $call[self::kParamsKeyParams]);
+            }
+
+            $totalExpectedProcessingTime = $totalLimit * $baseProcessingTimeUnit;
+
+            $oneUnitExpectedProcessingTime = floor($totalExpectedProcessingTime/$callSetCount);
+
+            $max = floor($oneUnitExpectedProcessingTime * 1.1);
+            $min = ceil($oneUnitExpectedProcessingTime * 0.6);
+
+            $sleepTime = mt_rand($min, $max);
+
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+                \pKey::kMSG => "SLEEP {$sleepTime} sec",
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+
+            \Yii::$app->flog->assignerInfo($logParams);
+
+            sleep(intval($sleepTime));
+        }
+
+        return;
+
+    }
+
+    public function postAsinc($url, array $postParams)
+    {
+
+        $postDataList = [];
+
+        foreach($postParams as $key => $val){
+            $postDataList[] = $key."=".$val;
+        }
+
+        $postStr = join('&', $postDataList);
+
+
+        $command = 'wget '.$url.' --spider --post-data "'.$postStr.'" > /dev/null &';
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kMSG => "POST",
+            \pKey::kPARAMS => ['COMMAND' => $command, 'POSTPARAMS' => $postParams],
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
+
+        system($command);
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+        \Yii::$app->flog->assignerInfo($logParams);
+
+        return;
+    }
+
+
+    public function getAssignedTaskList($category2Id, $startOffset, $limit, $startId = null, $callSetCount = null)
+    {
+        $fetcherCount = count($this->fetcherList);
+
+        if($fetcherCount === 0){
+            $errMessage = "no fetcher server.you should add server to amazon_scraper config fetcherList\n";
+            $logParams = [
+                \pKey::kTYPE => \pVal::kTYPE_ERR,
+                \pKey::kMSG => $errMessage,
+                \pKey::kFILE => __FILE__,
+                \pKey::kLINE => __LINE__,
+            ];
+
+            \Yii::$app->flog->assignerErr($logParams);
+            return 0;
+        }
+
+        $countMsg = "FETCHER COUNT:{$fetcherCount}\n";
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_ERR,
+            \pKey::kMSG => $countMsg,
+            \pKey::kPARAMS => $this->fetcherList,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
+
+        $totalProcessCount = Card::find()
+            ->where([Card::kAttrKeyCat2Id => intval($category2Id)])
+            ->offset(intval($startOffset))
+            ->count();
+
+        $processCount = floor($totalProcessCount / $limit);
+
+
+        if(is_null($callSetCount)){
+            $callSetCount = $fetcherCount;
+        }
+
+        if(is_null($startId)){
+            $startId = 1;
+        }
+
+
+        $postParamsList = [];
+
+        for($i = 0; $processCount > $i ; $i++){
+
+            $tmpOffset = intval($startOffset) + (intval($limit) * $i);
+            $tmpId = intval($startId) + $i;
+            $tmpParams = [
+                'id' => $tmpId,
+                Card::kParamsKeyCat2Id => $category2Id,
+                Card::kParamsKeyOffset => $tmpOffset,
+                Card::kParamsKeyLimit  => intval($limit),
+            ];
+
+            $postParamsList[] = $tmpParams;
+
+        }
+
+
+        $assignedTaskList = [];
+
+        reset($this->fetcherList);
+
+        foreach($postParamsList as $postParams){
+            $fetcherArray = each($this->fetcherList);
+
+            $assignedTaskList[] = [
+                self::kParamsKeyUrl    => $fetcherArray['value'],
+                self::kParamsKeyParams => $postParams,
+            ];
+
+            if(intval($fetcherArray['key']) === intval(count($this->fetcherList) - 1)){
+                reset($this->fetcherList);
+            }
+
+        }
+
+
+        $callSetList = [];
+
+        $callCount = 0;
+
+        foreach ($assignedTaskList as $key => $assignedTask) {
+
+            if($callCount === 0){
+                $tmpCallSet = [];
+            }
+
+            if($callCount === $callSetCount){
+                $callSetList[] = $tmpCallSet;
+                $tmpCallSet = [];
+                $callCount = 0;
+            }
+
+            $tmpCallSet[] = $assignedTask;
+
+            if(intval($key) === intval(count($assignedTaskList) - 1)){
+                $callSetList[] = $tmpCallSet;
+
+            }
+
+            $callCount++;
+
+        }
+
+        $logParams = [
+            \pKey::kTYPE => \pVal::kTYPE_PROCESS,
+            \pKey::kPARAMS => $callSetList,
+            \pKey::kFILE => __FILE__,
+            \pKey::kLINE => __LINE__,
+        ];
+
+        \Yii::$app->flog->assignerInfo($logParams);
+
+        return $callSetList;
+
+    }
 
     /**
      * 特定カードのIDについてASINデータの取得が必要かどうか

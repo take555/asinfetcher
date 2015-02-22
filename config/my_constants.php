@@ -53,17 +53,19 @@ class pKey{
 
 class pVal{
 
-    const kAPPTYPE_ASSIGNER    = 'assigner';
+    const kAPPTYPE_ASSIGNER          = 'assigner';
 
-    const kAPPTYPE_FETCHER     = 'fetcher';
+    const kAPPTYPE_FETCHER           = 'fetcher';
 
-    const kTYPE_PROCESS        = 'proc';
+    const kTYPE_PROCESS              = 'proc';
 
-    const kTYPE_PROCESS_ITEM   = 'proc_item';
+    const kTYPE_PROCESS_ITEM         = 'proc_item';
 
-    const kTYPE_ERR            = 'err';
+    const kTYPE_PROCESS_UTIL_MULTI   = 'proc_multi';
 
-    const kTYPE_ERR_DB         = 'err_db';
+    const kTYPE_ERR                  = 'err';
 
-    const kTYPE_ERR_INVALID_PARAMS  = 'err_invalid_params';
+    const kTYPE_ERR_DB               = 'err_db';
+
+    const kTYPE_ERR_INVALID_PARAMS   = 'err_invalid_params';
 }
